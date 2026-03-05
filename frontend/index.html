@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Maestro C</title>
+    <link rel="canonical" href="https://planmaestroc.com/">
+    <link rel="stylesheet" href="../frontend/style.css">
+    <script src="script.js"></script>
+</head>
+
+<body>
+
+<h1>Sistema Administrativo</h1>
+
+<!-- MENU -->
+<nav>
+    <button onclick="mostrarSeccion('estudiantes')">Estudiantes</button>
+    <button onclick="mostrarSeccion('inscripcion')">Inscripción</button>
+    <button onclick="mostrarSeccion('pagos')">Pagos</button>
+    <button onclick="mostrarSeccion('pendientes')">Pendientes</button>
+</nav>
+
+<hr>
+
+<!-- ESTUDIANTES -->
+<section id="estudiantes">
+    <h2>Registro de Estudiantes</h2>
+
+    <form>
+        <label>Nombre y apellido:</label><br>
+        <input type="text" required><br><br>
+
+        <label>Cédula:</label><br>
+        <input type="text" id="cedula" maxlength="13" oninput="formatearCedula(this)" required>
+        <br><br>
+
+        <label>Fecha de nacimiento:</label><br>
+        <input type="date" required><br><br>
+
+        <label>Teléfono:</label><br>
+        <input type="text" required><br><br>
+
+        <label>Correo:</label><br>
+        <input type="email" required><br><br>
+
+        <label>Comentarios (opcional):</label><br>
+        <textarea id="comentarios" maxlength="100" rows="4" cols="40" 
+        oninput="actualizarContador()"
+        placeholder="Escriba algún comentario si lo desea..."></textarea><br>
+        <small>Caracteres: <span id="contador">0</span>/100</small>
+        <br><br>
+
+        <button type="submit">Guardar Estudiante</button>
+    </form>
+</section>
+
+<!-- INSCRIPCIÓN -->
+<section id="inscripcion" style="display:none;">
+    <h2>Formulario de Inscripción</h2>
+
+    <form id="formInscripcion">
+
+        <label>Curso:</label><br>
+        <select id="curso" onchange="actualizarInfoCurso()">
+            <option value="">Seleccione</option>
+        </select><br><br>
+
+        <label>Tipo de pago:</label><br>
+        <select id="tipoPago" onchange="calcularTotal()">
+            <option value="cuotas">Por Cuotas</option>
+            <option value="completo">Pago Completo</option>
+            <option value="becado">Becado</option>
+        </select><br><br>
+
+        <label>Monto a pagar:</label><br>
+        <input type="number" id="montoPagado" oninput="calcularTotal()"><br><br>
+
+        <h3>Total a pagar: <span id="total">0</span></h3>
+        <h3>Monto pendiente: <span id="pendiente">0</span></h3>
+
+    </form>
+</section>
+
+<!-- PAGOS -->
+<section id="pagos" style="display:none;">
+    <h2>Registro de Pagos</h2>
+
+    <form onsubmit="guardarPago(event)">
+
+        <label>Estudiante:</label><br>
+        <input type="text" id="estudiantePago" required><br><br>
+
+        <label>Curso:</label><br>
+        <select id="cursoPago" required>
+            <option value="">Seleccione</option>
+        </select><br><br>
+
+        <label>Monto Pagado:</label><br>
+        <input type="number" id="montoPago" required><br><br>
+
+        <label>Fecha de Pago:</label><br>
+        <input type="date" id="fechaPago" required><br><br>
+
+        <label>Método de Pago:</label><br>
+        <select id="metodoPago" required>
+            <option>Efectivo</option>
+            <option>Transferencia</option>
+            <option>Tarjeta</option>
+        </select><br><br>
+
+        <button type="submit">Guardar Pago</button>
+    </form>
+
+    <h3>Historial de Pagos</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Estudiante</th>
+                <th>Curso</th>
+                <th>Monto</th>
+                <th>Fecha</th>
+                <th>Método</th>
+            </tr>
+        </thead>
+        <tbody id="tablaPagos">
+        </tbody>
+    </table>
+</section>
+
+
+
+<!-- PENDIENTES -->
+<section id="pendientes" style="display:none;">
+    <h2>Pagos Pendientes (Ejemplo de cómo se vería en un caso real)</h2>
+
+    <table border="1">
+        <tr>
+            <th>Estudiante</th>
+            <th>Curso</th>
+            <th>Total Curso</th>
+            <th>Pagado</th>
+            <th>Pendiente</th>
+            <th>Estado</th>
+        </tr>
+
+        <tr>
+            <td>Juan Pérez</td>
+            <td>CCNA v7</td>
+            <td>13200</td>
+            <td>5000</td>
+            <td>8200</td>
+            <td>Pendiente</td>
+        </tr>
+    </table>
+</section>
+
+
+<script>
+
+function mostrarSeccion(id) {
+    document.querySelectorAll("section").forEach(sec => sec.style.display = "none");
+    document.getElementById(id).style.display = "block";
+}
+
+/* CONTADOR DE CARACTERES */
+function actualizarContador() {
+    const texto = document.getElementById("comentarios").value.length;
+    document.getElementById("contador").innerText = texto;
+}
+
+/* CURSOS */
+const cursos = {
+    "CCNA v7 Módulo 1": { precio: 13200, descuento: 0.25 },
+    "Manejo Apple Mac": { precio: 8900, descuento: 0.20 },
+    "Ciberseguridad (CISCO)": { precio: 11700, descuento: 0.20 },
+    "Diplomado IoT (Virtual)": { precio: 7800, descuento: 0.20 },
+    "Prog. Apps iOS & Android": { precio: 8700, descuento: 0.20 },
+    "Diseño Gráfico Full": { precio: 15600, descuento: 0.36 },
+    "Diseño Gráfico Básico": { precio: 11700, descuento: 0.20 },
+    "Paquete de Oficina": { precio: 11700, descuento: 0.20 },
+    "Excel Avanzado": { precio: 9700, descuento: 0.20 },
+    "Tecnólogo en Informática": { precio: 6500, descuento: 0 },
+    "Reparación de PC": { precio: 7800, descuento: 0.20 },
+    "Diplomado Contabilidad": { precio: 11600, descuento: 0.15 },
+    "Marketing Digital": { precio: 4900, descuento: 0 },
+    "Redes Sociales": { precio: 3800, descuento: 0 }
+};
+
+/* Cargar cursos */
+/* Cargar cursos en ambos selects */
+const selectCursoInscripcion = document.getElementById("curso");
+const selectCursoPago = document.getElementById("cursoPago");
+
+for (let nombre in cursos) {
+
+    // Inscripción
+    let option1 = document.createElement("option");
+    option1.value = nombre;
+    option1.textContent = nombre;
+    selectCursoInscripcion.appendChild(option1);
+
+    // Pagos
+    let option2 = document.createElement("option");
+    option2.value = nombre;
+    option2.textContent = nombre;
+    selectCursoPago.appendChild(option2);
+}
+
+function actualizarInfoCurso() {
+    document.getElementById("montoPagado").value = "";
+    document.getElementById("tipoPago").value = "cuotas";
+    document.getElementById("total").innerText = "0";
+    document.getElementById("pendiente").innerText = "0";
+    calcularTotal();
+}
+
+function calcularTotal() {
+
+    const cursoSeleccionado = document.getElementById("curso").value;
+    const tipoPago = document.getElementById("tipoPago").value;
+    const inputMonto = document.getElementById("montoPagado");
+
+    if (!cursoSeleccionado) {
+        document.getElementById("total").innerText = "0";
+        document.getElementById("pendiente").innerText = "0";
+        inputMonto.disabled = true;
+        return;
+    }
+
+    const info = cursos[cursoSeleccionado];
+    const montoPagado = parseFloat(inputMonto.value) || 0;
+
+    let total = info.precio;
+    let pendiente = 0;
+
+    if (tipoPago === "completo") {
+        total = total - (total * info.descuento);
+        pendiente = 0;
+        inputMonto.disabled = true;  
+        inputMonto.value = total;     //coloca automáticamente el total
+    }
+    else if (tipoPago === "becado") {
+        total = 0;
+        pendiente = 0;
+        inputMonto.disabled = true;   
+        inputMonto.value = 0;
+    }
+    else { // cuotas
+        inputMonto.disabled = false;  
+        pendiente = total - montoPagado;
+        if (pendiente < 0) pendiente = 0;
+    }
+
+    document.getElementById("total").innerText = total;
+    document.getElementById("pendiente").innerText = pendiente;
+}
+
+
+function formatearCedula(input) {
+    let valor = input.value.replace(/\D/g, "");
+    valor = valor.substring(0, 11);
+
+    if (valor.length > 7) {
+        valor = valor.replace(/^(\d{3})(\d{7})(\d{1}).*/, "$1-$2-$3");
+    } else if (valor.length > 3) {
+        valor = valor.replace(/^(\d{3})(\d+)/, "$1-$2");
+    }
+
+    input.value = valor;
+}
+
+function guardarPago(event) {
+    event.preventDefault();
+
+    const estudiante = document.getElementById("estudiantePago").value;
+    const curso = document.getElementById("cursoPago").value;
+    const monto = document.getElementById("montoPago").value;
+    const fecha = document.getElementById("fechaPago").value;
+    const metodo = document.getElementById("metodoPago").value;
+
+    if (!estudiante || !curso || !monto || !fecha || !metodo) {
+        alert("Complete todos los campos");
+        return;
+    }
+
+    const tabla = document.getElementById("tablaPagos");
+
+    const fila = document.createElement("tr");
+
+    fila.innerHTML = `
+        <td>${estudiante}</td>
+        <td>${curso}</td>
+        <td>${monto}</td>
+        <td>${fecha}</td>
+        <td>${metodo}</td>
+    `;
+
+    tabla.appendChild(fila);
+
+    // Limpiar formulario
+    document.getElementById("estudiantePago").value = "";
+    document.getElementById("cursoPago").value = "";
+    document.getElementById("montoPago").value = "";
+    document.getElementById("fechaPago").value = "";
+    document.getElementById("metodoPago").selectedIndex = 0;
+}
+
+</script>
+
+</body>
+</html>
+

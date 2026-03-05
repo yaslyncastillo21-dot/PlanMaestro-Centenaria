@@ -30,6 +30,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return clean;
   }
 
+  function formatTelefono(value) {
+    const clean = value.replace(/\D/g, "").substring(0, 10);
+    if (clean.length > 6) return clean.replace(/^(\d{3})(\d{3})(\d+).*/, "$1-$2-$3");
+    if (clean.length > 3) return clean.replace(/^(\d{3})(\d+)/, "$1-$2");
+    return clean;
+  }
+
   function updateCounter() {
     $("contador").textContent = $("comentarios").value.length;
   }
@@ -274,6 +281,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   $("cedula").addEventListener("input", (e) => {
     e.target.value = formatCedula(e.target.value);
+  });
+  $("telefono").addEventListener("input", (e) => {
+    e.target.value = formatTelefono(e.target.value);
   });
   $("comentarios").addEventListener("input", updateCounter);
   $("curso").addEventListener("change", calcularTotal);

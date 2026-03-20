@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const { getPool, sql } = require("./db");
 
 const app = express();
@@ -44,10 +45,11 @@ app.post("/api/estudiantes", async (req, res) => {
         INSERT INTO dbo.estudiantes (
           nombre_apellido, cedula, fecha_nacimiento, telefono, correo, comentarios
         )
-        OUTPUT INSERTED.id
         VALUES (
           @nombre_apellido, @cedula, @fecha_nacimiento, @telefono, @correo, @comentarios
         );
+        
+        SELECT CAST(SCOPE_IDENTITY() AS INT) AS id;
       `);
 
     res.status(201).json({ ok: true, id: result.recordset[0].id });
@@ -104,10 +106,11 @@ app.post("/api/inscripciones", async (req, res) => {
         INSERT INTO dbo.inscripciones (
           estudiante_id, curso_id, tipo_pago, total_curso, descuento_aplicado, monto_inicial
         )
-        OUTPUT INSERTED.id
         VALUES (
           @estudiante_id, @curso_id, @tipo_pago, @total_curso, @descuento_aplicado, @monto_inicial
         );
+        
+        SELECT CAST(SCOPE_IDENTITY() AS INT) AS id;
       `);
 
     res.status(201).json({ ok: true, id: result.recordset[0].id });
@@ -243,7 +246,13 @@ app.get("/api/pendientes", async (_req, res) => {
   }
 });
 
+const frontendDir = path.resolve(__dirname, "../../frontend");
+app.use(express.static(frontendDir));
+app.get(/^\/(?!api).*/, (_req, res) => {
+  res.sendFile(path.join(frontendDir, "index.html"));
+});
+
 const port = Number(process.env.PORT || 3000);
 app.listen(port, () => {
-  console.log(`API escuchando en http://localhost:${port}`);
+  console.log(`Servidor web+API escuchando en http://localhost:${port}`);
 });

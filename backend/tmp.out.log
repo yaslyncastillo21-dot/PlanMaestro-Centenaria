@@ -1,0 +1,2 @@
+[dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Servidor web+API escuchando en http://localhost:3000

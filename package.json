@@ -1,0 +1,10 @@
+{
+  "name": "plan-maestro",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "start": "npm --prefix backend run start",
+    "frontend": "npm --prefix frontend run dev"
+  }
+}

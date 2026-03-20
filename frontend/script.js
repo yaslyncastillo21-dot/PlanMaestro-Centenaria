@@ -46,13 +46,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function api(path, options = {}) {
-    const response = await fetch(`${API_BASE}${path}`, {
-      headers: { "Content-Type": "application/json" },
-      ...options,
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "Error en la API");
-    return data;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    try {
+      const response = await fetch(`${API_BASE}${path}`, {
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        ...options,
+      });
+
+      const raw = await response.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch (_error) {
+        data = {};
+      }
+
+      if (!response.ok) {
+        const detail = data.error || raw || `HTTP ${response.status}`;
+        throw new Error(detail);
+      }
+
+      return data;
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("La API no respondio a tiempo. Verifique backend y base de datos.");
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   function fillCursos() {
@@ -338,5 +362,3 @@ document.addEventListener("DOMContentLoaded", () => {
       setStatus("estadoEstudiante", `No se pudo cargar catalogos: ${error.message}`, "error");
     });
 });
-
-

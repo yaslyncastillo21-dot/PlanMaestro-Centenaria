@@ -238,11 +238,12 @@ document.addEventListener("DOMContentLoaded", () => {
   async function guardarInscripcion(event) {
     event.preventDefault();
     setStatus("estadoInscripcion", "Guardando...", "");
+    const montoInicial = Number($("montoPagado").value || 0);
     const body = {
       estudiante_id: Number($("estudianteInscripcion").value),
       curso_id: Number($("curso").value),
       tipo_pago: $("tipoPago").value,
-      monto_inicial: Number($("montoPagado").value || 0),
+      monto_inicial: montoInicial,
     };
 
     await api("/inscripciones", { method: "POST", body: JSON.stringify(body) });
@@ -250,7 +251,15 @@ document.addEventListener("DOMContentLoaded", () => {
     $("total").textContent = "0";
     $("pendiente").textContent = "0";
     await cargarTablas();
-    setStatus("estadoInscripcion", "Inscripcion guardada correctamente.", "ok");
+    if (montoInicial > 0) {
+      setStatus(
+        "estadoInscripcion",
+        "Inscripcion guardada. El abono inicial se registro automaticamente en Pagos.",
+        "ok"
+      );
+    } else {
+      setStatus("estadoInscripcion", "Inscripcion guardada correctamente.", "ok");
+    }
   }
 
   async function guardarPago(event) {
